@@ -1,0 +1,39 @@
+﻿@model IEnumerable<CryptoTrack.Models.User>
+
+@{
+    ViewBag.Title = "All Users";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3>Following table shows the Users detail</h3>
+<p>You will find their details, as well as other links to other actions that can be performed and operated over the users objects. </p>
+
+<p>You can also create a new user <a href="~/User/Create">here</a>. </p>
+
+<table class="table">
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Trusted</th>
+        <th>Actions</th>
+    </tr>
+
+    @if (Model != null && Model.Count() > 0)
+    {
+        foreach (var user in Model)
+        {
+            // Create the list of these users
+            <tr>
+                <td>@user.ID</td>
+                <td>@user.Name</td>
+                <td>@user.Address</td>
+                <td>@user.Trusted</td>
+                <td>
+                    <a href="~/User/Update/@user.ID">Update</a>
+                    <a href="~/User/Delete/@user.ID">Delete</a>
+                </td>
+            </tr>
+        }
+    }
+</table>
