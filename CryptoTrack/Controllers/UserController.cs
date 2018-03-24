@@ -27,36 +27,46 @@ namespace CryptoTrack.Controllers
             if(HttpContext.Request.RequestType == "POST")
             {
                 ViewBag.Submitted = true;
-                var id = Request.Form["id"];
+                
                 var name = Request.Form["name"];
-                var address = Request.Form["address"];
-                var trusted = false;
+                var pwd1 = Request.Form["pwd1"];
+                var pwd2 = Request.Form["pwd2"];
 
-                if (Request.Form["trusted"] == "on")
+                if (pwd1 != pwd2)
                 {
-                    trusted = true;
+                    ViewBag.Message = "Your passwords does not match!";
+                    return View();
                 }
-
-                User user = new User()
+                else
                 {
-                    ID = Convert.ToInt16(id),
-                    Name = name,
-                    Address = address,
-                    Trusted = Convert.ToBoolean(trusted)
-                };
+                    var UserFile = Models.User.UserFile;
+                    var UserData = System.IO.File.ReadAllText(UserFile);
+                    List<User> UserList = new List<User>();
+                    UserList = JsonConvert.DeserializeObject<List<User>>(UserData);
 
-                var UserFile = Models.User.UserFile;
-                var UserData = System.IO.File.ReadAllText(UserFile);
-                List<User> UserList = new List<User>();
-                UserList = JsonConvert.DeserializeObject<List<User>>(UserData);
+                    var id = 1;
+                    if (UserList.Count == 0)
+                    {
+                        UserList = new List<User>();
+                    }
+                    else
+                    {
+                        User LastUsr = UserList.First();
+                        id = LastUsr.ID++;
+                    }
 
-                if(UserList == null)
-                {
-                    UserList = new List<User>();
+
+                    User user = new User()
+                    {
+                        ID = Convert.ToInt16(id),
+                        Name = name,
+                        Password = pwd1
+                    };
+
+                    UserList.Add(user);
+                    System.IO.File.WriteAllText(UserFile, JsonConvert.SerializeObject(UserList));
+                    created = true;
                 }
-                UserList.Add(user);
-                System.IO.File.WriteAllText(UserFile, JsonConvert.SerializeObject(UserList));
-                created = true;
             }
 
             if (created)
@@ -77,8 +87,6 @@ namespace CryptoTrack.Controllers
             {
                 // Request is Post type; must be a submit
                 var name = Request.Form["name"];
-                var address = Request.Form["address"];
-                var trusted = Request.Form["trusted"];
 
                 // Get all of the clients
                 var userss = Models.User.GetUsers();
@@ -90,8 +98,6 @@ namespace CryptoTrack.Controllers
                     {
                         // Client found, now update his properties and save it.
                         usr.Name = name;
-                        usr.Address = address;
-                        usr.Trusted = Convert.ToBoolean(trusted);
                         // Break through the loop
                         break;
                     }

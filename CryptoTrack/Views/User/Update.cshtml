@@ -12,14 +12,9 @@
 <form method="post" style="margin: 5% 0 0">
     <div class="float-left">
         <p>Name</p>
-        <p>Address</p>
-        <p>Trusted</p>
     </div>
     <div class="float-right">
         <input type="text" style="margin: 1px 0 2px" name="name" value="@Model.Name" /><br />
-        <input type="text" style="margin: 1px 0 2px" name="address" value="@Model.Address" /><br />
-        <input type="checkbox" style="margin: 1px 0 2px" name="trusted"
-               @if (Model.Trusted) { <text> checked="checked" </text> } />
         <br />
         <input type="submit" value="Save" />
     </div>
