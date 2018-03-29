@@ -3,6 +3,13 @@
 }
 <br>
 <div>
-    <h3>HELLO YOU LOGGED IN</h3>
+    <h3>Welcome!</h3>
 </div>
 
+<p>
+    @if (ViewBag.Submitted)
+    {
+        // If the form was submitted
+        @ViewBag.Message
+    }
+</p>
