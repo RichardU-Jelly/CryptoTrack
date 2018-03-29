@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -11,11 +13,10 @@ namespace CryptoTrack.Controllers
 {
     public class UserController : Controller
     {
-        // GET: User
+        // GET: Display all users (not direct connection - only accessable for those who know about the index page)
         public ActionResult Index()
         {
             var users = Models.User.GetUsers();
-
             return View(users);
         }
 
@@ -32,39 +33,58 @@ namespace CryptoTrack.Controllers
                 var pwd1 = Request.Form["pwd1"];
                 var pwd2 = Request.Form["pwd2"];
 
-                if (pwd1 != pwd2)
+                if (pwd1 != pwd2 || name == "" || pwd1== "" || pwd2 == "")
                 {
-                    ViewBag.Message = "Your passwords does not match!";
+                    ViewBag.Message = "Your passwords does not match or you did not entered all information!";
                     return View();
                 }
                 else
                 {
-                    var UserFile = Models.User.UserFile;
-                    var UserData = System.IO.File.ReadAllText(UserFile);
-                    List<User> UserList = new List<User>();
-                    UserList = JsonConvert.DeserializeObject<List<User>>(UserData);
+                    SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["DBConnString"].ConnectionString);
+                    string SQLquery = "SELECT * FROM Users";
+                    SqlCommand cmd = new SqlCommand(SQLquery, connection);
+                    User DBuser = new User();
+                    connection.Open();
 
-                    var id = 1;
-                    if (UserList.Count == 0)
+                    int UserCounter = 0;
+                    using (SqlDataReader oReader = cmd.ExecuteReader())
                     {
-                        UserList = new List<User>();
+                        while (oReader.Read())
+                        {
+                            DBuser.ID = int.Parse(oReader["Id"].ToString());
+                            DBuser.Name = oReader["Username"].ToString();
+                            DBuser.Password = oReader["Password"].ToString();
+                            if(DBuser.Name.Trim() == name)
+                            {
+                                ViewBag.Message = "User with this username already exists, please choose another name and try again";
+                                return View();
+                            }
+                            UserCounter++;
+                        }
                     }
-                    else
-                    {
-                        User LastUsr = UserList.First();
-                        id = LastUsr.ID++;
-                    }
 
-
-                    User user = new User()
+                    User NewUser = new User()
                     {
-                        ID = Convert.ToInt16(id),
+                        ID = UserCounter + 1,
                         Name = name,
                         Password = pwd1
                     };
 
-                    UserList.Add(user);
-                    System.IO.File.WriteAllText(UserFile, JsonConvert.SerializeObject(UserList));
+                    try
+                    {
+                        SQLquery = "INSERT INTO Users (Id,Username,Password) VALUES (@ID,@Username,@Password)";
+                        cmd = new SqlCommand(SQLquery, connection);
+                        cmd.Parameters.AddWithValue("@ID", NewUser.ID);
+                        cmd.Parameters.AddWithValue("@Username", NewUser.Name);
+                        cmd.Parameters.AddWithValue("@Password", NewUser.Password);
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch(Exception e) {
+                        ViewBag.Message = "Exception : " + e.Message;
+                    }
+
+
+                    connection.Close();
                     created = true;
                 }
             }
