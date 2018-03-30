@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -43,9 +46,26 @@ namespace CryptoTrack.Controllers
                 }
 
                 string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+                string timestampDB = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
                 string token = hash + ":" + timestamp;
 
-                //ViewBag.Message = "Logged in : " + token;
+                Session["LoginToken"] = token;
+                
+                SqlConnection connection = new SqlConnection(ConfigurationManager.ConnectionStrings["DBConnString"].ConnectionString);
+                connection.Open();
+                string query = "INSERT INTO Logins (LoginToken,Start) VALUES (@Token,@StartDate)";
+                SqlCommand cmd = new SqlCommand(query, connection);
+                cmd.Parameters.AddWithValue("@Token", token);
+                cmd.Parameters.AddWithValue("@StartDate", timestampDB);
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch(Exception e)
+                {
+                    ViewBag.Message = e.Message;
+                }
+                connection.Close();
 
             }
             return View();

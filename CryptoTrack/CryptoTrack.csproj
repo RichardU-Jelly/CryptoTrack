@@ -203,6 +203,7 @@
     <Content Include="Views\User\Update.cshtml" />
     <Content Include="Views\User\Delete.cshtml" />
     <Content Include="Views\Login\Login.cshtml" />
+    <Content Include="Views\Shared\_LayoutLogin.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
